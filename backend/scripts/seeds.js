@@ -1,52 +1,98 @@
 //TODO: seeds script should come here, so we'll be able to put some data in our local env
-//TODO: seeds script should come here, so we'll be able to put some data in our local env
-const mongoose = require("mongoose");
-const connection = process.env.MONGODB_URI;
-mongoose.connect(connection);
-const User = mongoose.model("User");
-const Item = mongoose.model("Item");
-const Comment = mongoose.model("Comment");
+const moongoose = require('mongoose');
 
-async function seedDatabase() {
-  for (let i = 0; i < 100; i++) {
-    // add user
-    const user = { username: `user${i}`, email: `user${i}@gmail.com` };
-    const options = { upsert: true, new: true };
-    const createdUser = await User.findOneAndUpdate(user, {}, options);
+require('../models/User');
+require('../models/Item');
+require('../models/Comment');
 
-    // add item to user
-    const item = {
-      slug: `slug${i}`,
-      title: `title ${i}`,
-      description: `description ${i}`,
-      seller: createdUser,
-    };
-    const createdItem = await Item.findOneAndUpdate(item, {}, options);
+var Item = moongoose.model('Item');
 
-    // add comments to item
-    if (!createdItem?.comments?.length) {
-      let commentIds = [];
-      for (let j = 0; j < 100; j++) {
-        const comment = new Comment({
-          body: `body ${j}`,
-          seller: createdUser, 
-          item: createdItem, 
-        });
-        await comment.save();
-        commentIds.push(comment._id);
-      }
-      createdItem.comments = commentIds;
-      await createdItem.save();
-    }
-  }
+var Comment = moongoose.model('Comment');
+
+var User = moongoose.model('User');
+
+
+//connect to Mongo DB
+
+if(process.MONGODB_URI){
+    moongoose.connect(process.env.MONGODB_URI)
+}
+else{
+    console.warn(`Missing MONGODB_URI in the env`)
 }
 
-seedDatabase()
-  .then(() => {
-    console.log("Finished DB seeding");
-    process.exit(0);
-  })
-  .catch((err) => {
-    console.log(`Error while running DB seed: ${err.message}`);
-    process.exit(1);
-  });
+let userId;
+
+let itemId;
+
+
+async function seedDatabase(){
+
+ const users = Array.from(Array(100)).map((_item,i)=>({
+    username: `fakeusers${i}`,
+    email:`fakeuser${i}@anythinks.com`,
+    bio: 'test bio',
+    image: 'https://picsum.photos/200',
+    role: 'user',
+    favorites: [],
+    following: [],
+ }))
+
+ for(let user of users){
+    const u = new User(user)
+
+    const dbItem = await u.save()
+
+    if(!userId){
+        userId = dbItem._id;
+
+    }
+ }
+
+ const items = Array.from(Array(100)).map((_item,i)=>({
+    slug:`fakeitems${i}`,
+    title: `Fake Item${i}`,
+    description: 'test description',
+    image: 'https://picsum.photos/200',
+    comments: [],
+    tagList: ['test','tag'],
+    seller: userId 
+ }))
+
+ for(item of items){
+    const it = new Item(item)
+
+    const dbItem = await it.save();
+
+    if(!itemId){
+        itemId = dbItem._id
+    }
+ }
+
+
+
+ const comments = Array.from(Array(100)).map((_item,i)=>({
+    body: 'This is the body',
+    seller: userId,
+    item: itemId,
+
+ }))
+
+ for(comment of comments){
+
+    const c = new Comment(comment);
+
+    await c.save();
+ }
+
+
+}
+
+
+
+seedDatabase().then(() =>{
+    process.exit();
+}).catch((err)=>{
+    console.error(err);
+    process.exit()
+})

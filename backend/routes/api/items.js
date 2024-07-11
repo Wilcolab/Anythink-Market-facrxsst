@@ -315,30 +315,17 @@ router.delete("/:item/comments/:comment", auth.required, function(
   res,
   next
 ) {
-    //find user with ithe same id in not found give 401
-    User.findById(req.payload.id).then(function(user) {
-      if (!user) {
-        return res.sendStatus(401);
-      }
-  
-      // Check if the user is the seller of the comment
-      if (req.comment.seller.toString() === user._id.toString()) {
-        // Remove the comment from the item's comments array
-        req.item.comments.remove(req.comment._id);
-        
-        // Save the item and remove the comment document
-        req.item.save()
-          .then(function() {
-            return Comment.findByIdAndRemove(req.comment._id).exec();
-          })
-          .then(function() {
-            res.sendStatus(204);
-          })
-          .catch(next);
-      } else {
-        return res.sendStatus(403); // Forbidden
-      }
-    }).catch(next);
+  req.item.comments.remove(req.comment._id);
+  req.item
+    .save()
+    .then(
+      Comment.find({ _id: req.comment._id })
+        .remove()
+        .exec()
+    )
+    .then(function() {
+      res.sendStatus(204);
+    });
 });
 
 module.exports = router;

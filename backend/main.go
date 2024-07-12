@@ -37,6 +37,7 @@ func main() {
 	router.GET("/items", getItems)
 	router.GET("/items/:id", getItemByID)
 	router.POST("/items", addItem)
+	router.GET("/items/popular", getPopularItem)
 	router.Run()
 }
 
@@ -100,6 +101,26 @@ func getItemByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, item)
 }
+
+func getPopularItem(c *gin.Context){
+	if len(inventory) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No items in inventory"})
+		return
+	}
+
+	mostViewedItem := inventory[0]
+
+
+
+	for _, item := range inventory{
+		if item.ViewCount > mostViewedItem.ViewCount {
+			mostViewedItem = item
+		}
+	}
+
+	c.JSON(http.StatusOK, mostViewedItem)
+}
+
 
 func healthcheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{

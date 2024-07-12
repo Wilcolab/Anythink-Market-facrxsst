@@ -10,21 +10,12 @@ type Item struct {
     Name string `json:"name"`
 }
 
+var inventory []Item
+var lastID int = 5
+
 func main() {
-	router := gin.Default()
-	router.GET("/", greet)
-	router.HEAD("/healthcheck", healthcheck)
 
-	router.GET("/items", jsonItems)
-	router.Run()
-}
-
-func greet(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, "Welcome, Go navigator, to the Anythink cosmic catalog.")
-}
-
-func jsonItems(c *gin.Context) {
-    items := []Item{
+	inventory = []Item{
         {ID: 1, Name: "Galactic Goggles"},
         {ID: 2, Name: "Meteor Muffins"},
         {ID: 3, Name: "Alien Antenna Kit"},
@@ -32,7 +23,41 @@ func jsonItems(c *gin.Context) {
         {ID: 5, Name: "Quantum Quill"},
     }
 
-    c.JSON(http.StatusOK, items)
+
+
+	router := gin.Default()
+	router.GET("/", greet)
+	router.HEAD("/healthcheck", healthcheck)
+
+	router.GET("/items", getItems)
+	router.POST("/items", addItem)
+	router.Run()
+}
+
+func greet(c *gin.Context) {
+	c.IndentedJSON(http.StatusOK, "Welcome, Go navigator, to the Anythink cosmic catalog.")
+}
+
+func getItems(c *gin.Context) {
+    c.JSON(http.StatusOK, inventory)
+}
+
+func addItem(c *gin.Context) {
+    var newItem Item
+
+    // Bind JSON body into newItem struct
+    if err := c.BindJSON(&newItem); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    // Assign a new ID and add to inventory
+    lastID++
+    newItem.ID = lastID
+    inventory = append(inventory, newItem)
+
+    // Return the newly added item
+    c.JSON(http.StatusCreated, newItem)
 }
 
 func healthcheck(c *gin.Context) {

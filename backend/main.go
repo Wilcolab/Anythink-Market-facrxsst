@@ -2,12 +2,14 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 	"github.com/gin-gonic/gin"
 )
 
 type Item struct {
-    ID   int    `json:"id"`
-    Name string `json:"name"`
+    ID        int    `json:"id"`
+    Name      string `json:"name"`
+    ViewCount int    `json:"view_count"`
 }
 
 var inventory []Item
@@ -16,11 +18,11 @@ var lastID int = 5
 func main() {
 
 	inventory = []Item{
-        {ID: 1, Name: "Galactic Goggles"},
-        {ID: 2, Name: "Meteor Muffins"},
-        {ID: 3, Name: "Alien Antenna Kit"},
-        {ID: 4, Name: "Starlight Lantern"},
-        {ID: 5, Name: "Quantum Quill"},
+        {ID: 1, Name: "Galactic Goggles", ViewCount: 0},
+        {ID: 2, Name: "Meteor Muffins", ViewCount: 0},
+        {ID: 3, Name: "Alien Antenna Kit", ViewCount: 0},
+        {ID: 4, Name: "Starlight Lantern", ViewCount: 0},
+        {ID: 5, Name: "Quantum Quill", ViewCount: 0},
     }
 
 
@@ -30,6 +32,7 @@ func main() {
 	router.HEAD("/healthcheck", healthcheck)
 
 	router.GET("/items", getItems)
+	router.GET("/items/:id", getItemByID)
 	router.POST("/items", addItem)
 	router.Run()
 }
@@ -60,8 +63,48 @@ func addItem(c *gin.Context) {
     c.JSON(http.StatusCreated, newItem)
 }
 
+func getItemByID(c *gin.Context){
+	idParam := c.Param("id")
+	id, err := strconv.Atoi(idParam)
+	
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid item ID"
+		})
+		return
+	}
+
+	var item *Item
+
+	for i:= range inventory {
+		if inventory[i].ID == id {
+			item = &inventory[i]
+			break
+		}
+	}
+
+	if item == nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Item not found"
+		})
+
+		return
+	}
+
+	//used goroutine
+	go incrementViewCount(item)
+
+	c.JSON(http.StatusOK, item)
+
+}
+
 func healthcheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": "ok",
 	})
+}
+
+
+func incrementViewCount(item *Item) {
+    item.ViewCount++
 }

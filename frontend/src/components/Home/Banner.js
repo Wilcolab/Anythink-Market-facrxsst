@@ -1,7 +1,18 @@
 import React from "react";
 import logo from "../../imgs/logo.png";
+import agent from '../../agent.js';
 
-const Banner = () => {
+
+const Banner = (props) => {
+  const onSearchChange = (event) => {
+    props.onSearchFilter(
+      event.target.value, 
+      (page) => 
+        agent.Items.byTitle(event.target.value),
+        agent.Items.byTitle(event.target.value)
+      
+    );
+  };
   return (
     <div className="banner text-white">
       <div className="container p-4 text-center">
@@ -9,6 +20,9 @@ const Banner = () => {
         <div>
           <span>A place to </span>
           <span id="get-part">get</span>
+          <form>
+            <input style={{width: "250px"}} type="text" placeholder="What is that you truly desire?" name="term" id="search-box" onChange={onSearchChange}/>
+          </form>
           <span> the cool stuff.</span>
         </div>
       </div>

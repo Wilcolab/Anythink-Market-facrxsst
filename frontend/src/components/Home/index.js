@@ -7,7 +7,6 @@ import { connect } from "react-redux";
 import {
   HOME_PAGE_LOADED,
   HOME_PAGE_UNLOADED,
-  APPLY_TITLE_FILTER,
   APPLY_TAG_FILTER,
 } from "../../constants/actionTypes";
 
@@ -22,14 +21,12 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   onClickTag: (tag, pager, payload) =>
     dispatch({ type: APPLY_TAG_FILTER, tag, pager, payload }),
-  onSearch: (title, pager, payload)=> 
-    dispatch({ type: APPLY_TITLE_FILTER, title, pager, payload }),
   onLoad: (tab, pager, payload) =>
     dispatch({ type: HOME_PAGE_LOADED, tab, pager, payload }),
   onUnload: () => dispatch({ type: HOME_PAGE_UNLOADED }),
 });
 
-const Home = ({onLoad, onUnload, tags, onClickTag, onSearch}) => {
+const Home = ({onLoad, onUnload, tags, onClickTag}) => {
   const tab = "all";
   const itemsPromise = agent.Items.all;
 
@@ -44,7 +41,7 @@ const Home = ({onLoad, onUnload, tags, onClickTag, onSearch}) => {
 
     return (
       <div className="home-page">
-        <Banner onSearchFilter={onSearch}/>
+        <Banner />
 
         <div className="container page">
           <Tags tags={tags} onClickTag={onClickTag} />

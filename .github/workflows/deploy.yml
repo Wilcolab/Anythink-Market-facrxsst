@@ -25,3 +25,4 @@ jobs:
     - name: Deploy to Azure
       run: |
         az containerapp up -n $AZURE_APP_NAME --ingress external --target-port 3000 --source .
+
